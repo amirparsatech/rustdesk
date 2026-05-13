@@ -1,0 +1,41 @@
+name: Build RustDesk Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-msvc
+          override: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_PATH -Append
+      - name: Install libraries
+        run: |
+          vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+      - name: Build RustDesk
+        run: |
+          cd flutter
+          flutter pub get
+          cd ..
+          cargo build --release --features "inline"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-windows
+          path: target\release\rustdesk.exe
