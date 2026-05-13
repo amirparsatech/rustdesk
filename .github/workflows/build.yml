@@ -27,7 +27,8 @@ jobs:
           echo "$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_PATH -Append
       - name: Install libraries
         run: |
-          vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+          # در حالت manifest (وجود فایل vcpkg.json) فقط کافی است vcpkg install اجرا شود
+          vcpkg install
       - name: Build RustDesk
         run: |
           cd flutter
