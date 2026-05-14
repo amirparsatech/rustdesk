@@ -43,9 +43,10 @@ jobs:
         run: |
           # خالی کردن فایل هدر aom_ffi.h
           echo "// aom disabled" > libs/scrap/src/bindings/aom_ffi.h
+          # خالی کردن فایل aom.rs تا import ها ناپدید شوند
+          echo "// aom disabled" > libs/scrap/src/common/aom.rs
           # غیرفعال کردن شرط aom در build.rs
           (Get-Content libs/scrap/build.rs) -replace 'if let Some\(lib\) = find_vcpkg\("aom", "include/aom/aom.h"\) {', 'if false { // aom disabled' | Set-Content libs/scrap/build.rs
-          # کامنت کردن بدنه else
           (Get-Content libs/scrap/build.rs) -replace '} else \{\s*let dst = vcpkg::Config::new\(\)\.find_package\("aom"\)\.unwrap\(\);', '} else { /* aom disabled' | Set-Content libs/scrap/build.rs
           (Get-Content libs/scrap/build.rs) -replace 'println!\("cargo:rustc-link-lib=static=aom"\);', '// println!("cargo:rustc-link-lib=static=aom");' | Set-Content libs/scrap/build.rs
           (Get-Content libs/scrap/build.rs) -replace 'println!\("cargo:rustc-link-search=\{\}/lib", dst\);', '// println!("cargo:rustc-link-search={}/lib", dst);' | Set-Content libs/scrap/build.rs
