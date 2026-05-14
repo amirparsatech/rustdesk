@@ -1,4 +1,4 @@
-name: Build RustDesk Windows
+name: Build RustDesk Windows (نهایی)
 
 on:
   workflow_dispatch:
@@ -7,17 +7,24 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: x86_64-pc-windows-msvc
           override: true
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+
       - name: Setup vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg
@@ -25,16 +32,21 @@ jobs:
           .\bootstrap-vcpkg.bat
           echo "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_PATH -Append
+          # تنظیم متغیر محیطی برای جلوگیری از خطای manifest
+          echo "VCPKG_FEATURE_FLAGS=-manifests" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Install libraries
         run: |
-          # در حالت manifest (وجود فایل vcpkg.json) فقط کافی است vcpkg install اجرا شود
-          vcpkg install
+          cd vcpkg
+          .\vcpkg.exe install --triplet x64-windows-static
+
       - name: Build RustDesk
         run: |
           cd flutter
           flutter pub get
           cd ..
           cargo build --release --features "inline"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
