@@ -1,5 +1,4 @@
 name: Build RustDesk Windows (نهایی)
-#newsha goft commit nemishe
 on:
   workflow_dispatch:
 
